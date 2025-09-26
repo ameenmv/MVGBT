@@ -56,32 +56,42 @@
               New Chat
               <img class="w-[25px] ml-2" src="../assets/star.png" alt="" />
             </div>
+            <router-link to="/register"
+              ><div class="btn !py-[8px]">Register</div></router-link
+            >
           </div>
         </div>
         <!-- chat -->
         <div
-          class="my-6 flex flex-col justify-center items-center mx-10 rounded-[10px] w-[100%] h-[82vh] bg-[var(--sc)]"
+          class="my-6 flex flex-col justify-center items-center mx-4 rounded-[10px] w-[100%] h-[84vh] bg-[var(--sc)]"
         >
           <!-- chat area -->
           <div
             v-if="chat.length"
-            class="flex-1 overflow-y-auto my-6 mx-10 rounded-[10px] w-[100%] bg-[var(--sc)] p-4"
+            class="flex-1 overflow-y-auto my-6 mx-10 rounded-[10px] w-[100%] bg-[var(--sc)] p-10 px-20"
           >
-            <div v-for="(msg, i) in chat" :key="i" class="mb-3">
+            <div
+              v-for="(msg, i) in chat"
+              :key="i"
+              class="mb-3 flex"
+              :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
+            >
               <div
                 :class="[
-                  'inline-block px-3 py-2 rounded-lg',
+                  'px-3 py-2 rounded-lg max-w-[70%]',
                   msg.role === 'user'
-                    ? 'bg-blue-500 text-white self-end'
-                    : 'bg-gray-200 text-black self-start',
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-black',
                 ]"
               >
                 {{ msg.text }}
               </div>
             </div>
           </div>
+
           <!-- input -->
-          <div class="flex justify-center w-[65%] input">
+
+          <div class="flex justify-center w-[65%] duration-[.5s]">
             <div
               class="bg-[white] border w-[100%] border-[var(--border)] rounded-[40px] outline-none p-4 flex flex-col"
               type="text"
@@ -199,7 +209,7 @@ export default {
 
       // رد تجريبي من البوت
       setTimeout(() => {
-        this.chat.push({ role: "bot", text: "رد تلقائي على: " + this.input });
+        this.chat.push({ role: "bot", text: "Hi" + this.input });
       }, 800);
 
       // امسح الانبوت
@@ -209,8 +219,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.input {
-  transition: 0.5s;
-}
-</style>
+<style lang="scss" scoped></style>
