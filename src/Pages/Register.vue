@@ -41,19 +41,66 @@
             <p class="px-3 bg-[white]">OR</p>
             <div class="line"></div>
           </div>
+          <!-- name -->
           <label for="">Your Name</label>
-          <input placeholder="Your Name" type="text" class="input mt-2" />
+          <input
+            v-model="form.name"
+            @input="setTouched('name')"
+            :class="v$.form.name.$error ? 'is-invalid' : ''"
+            placeholder="Your Name"
+            type="text"
+            class="input mt-2"
+          />
+          <div v-if="v$.form.name.$errors.length">
+            <div
+              v-for="error in v$.form.name.$errors"
+              :key="error.$uid"
+              class="text-red-500 mt-1 font-medium"
+            >
+              {{ error.$message }}
+            </div>
+          </div>
+          <!-- email -->
           <div class="mt-6">
             <label for="">Your Email</label>
-            <input placeholder="Your Email" type="email" class="input mt-2" />
+            <input
+              v-model="form.email"
+              @input="setTouched('email')"
+              placeholder="Your Email"
+              :class="v$.form.email.$error ? 'is-invalid' : ''"
+              type="email"
+              class="input mt-2"
+            />
+            <div v-if="v$.form.email.$errors.length">
+              <div
+                v-for="error in v$.form.email.$errors"
+                :key="error.$uid"
+                class="text-red-500 mt-1 font-medium"
+              >
+                {{ error.$message }}
+              </div>
+            </div>
           </div>
+          <!-- password -->
           <div class="mt-6">
             <label for="">Your Password</label>
             <input
+              v-model="form.password"
+              @input="setTouched('password')"
+              :class="v$.form.password.$error ? 'is-invalid' : ''"
               placeholder="Your Password"
               type="password"
               class="input mt-2"
             />
+            <div v-if="v$.form.password.$errors.length">
+              <div
+                v-for="error in v$.form.password.$errors"
+                :key="error.$uid"
+                class="text-red-500 mt-1 font-medium"
+              >
+                {{ error.$message }}
+              </div>
+            </div>
           </div>
           <div class="flex mt-6 gap-3 font-medium items-center">
             <input class="w-[16px] h-[16px]" type="checkbox" />
@@ -63,7 +110,11 @@
               <span class="text-[var(--purple)]">fees.</span>
             </p>
           </div>
+          <!-- submit -->
           <div
+            @click="submit"
+            type="submit"
+            value="Submit"
             class="input mt-6 !bg-[var(--purple)] text-[white] cursor-pointer"
           >
             Submit
@@ -87,8 +138,78 @@
   </div>
 </template>
 
-<script>
-export default {};
+<script setup>
+import { reactive } from "vue";
+import useVuelidate from "@vuelidate/core";
+import { required, email, minLength } from "@vuelidate/validators";
+import { useToast } from "vue-toastification";
+import axios from "axios";
+import { useRouter } from "vue-router";
+const toast = useToast();
+const router = useRouter();
+
+const form = reactive({
+  name: "",
+  email: "",
+  password: "",
+});
+
+const rules = {
+  form: {
+    name: { required, minLength: minLength(3) },
+    email: { required, email },
+    password: { required, minLength: minLength(4) },
+  },
+};
+
+const v$ = useVuelidate(rules, { form });
+
+const setTouched = (field) => {
+  if (field === "name" || field === "all") v$.value.form.name.$touch();
+  if (field === "email" || field === "all") v$.value.form.email.$touch();
+  if (field === "password" || field === "all") v$.value.form.password.$touch();
+};
+
+// submit
+const submit = async () => {
+  setTouched("all");
+  const valid = await v$.value.$validate();
+
+  if (!valid) {
+    toast.error("من فضلك املأ البيانات بشكل صحيح");
+    return;
+  }
+
+  try {
+    // form data
+    const formData = {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      provider: "mgr",
+    };
+
+    // send to api
+    const response = await axios.post(
+      "http://127.0.0.1:8000/api/users",
+      formData
+    );
+
+    console.log("📥 Response:", response.data);
+    if (response.data.status === 200) {
+      toast.success("✅ تسجيل الدخول ناجح");
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } else {
+      toast.error(response.data.message || "بيانات غير صحيحة");
+    }
+  } catch (error) {
+    console.error("❌ Error:", error.response?.data || error.message);
+    // delete this before deadline
+    toast.error(error.response?.data?.message || "حدث خطأ أثناء تسجيل الدخول");
+  }
+};
 </script>
 
 <style lang="scss" scoped>
